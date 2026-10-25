@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>健康新聞 RAG 小幫手</title>
+<style>
+body{font-family:"Segoe UI","Noto Sans TC",sans-serif;background:#eef6f2;color:#19352c;margin:0}.wrap{max-width:850px;margin:36px auto;padding:0 18px}h1{color:#12664f}.panel{background:white;border-radius:16px;padding:20px;box-shadow:0 8px 30px #174f3b18}.controls{display:flex;gap:10px;margin-top:12px}input[type=text]{flex:1;padding:12px;border:1px solid #a8c7bb;border-radius:9px}button{background:#147d60;color:white;border:0;border-radius:9px;padding:11px 18px;cursor:pointer}.message{padding:14px;margin:12px 0;border-radius:12px;white-space:pre-wrap}.user{background:#dff4eb}.assistant{background:#f4f7f6}.sources{font-size:.9rem;border-top:1px solid #dbe8e3;margin-top:10px;padding-top:8px}.notice{font-size:.88rem;color:#5d716a}
+</style></head>
+<body><main class="wrap"><h1>健康新聞 RAG 小幫手</h1><p class="notice">回答僅整理本站新聞，不能取代專業醫療診斷。</p><section class="panel"><label><input id="retrieve" type="checkbox" checked> 此輪進行新聞檢索</label><div id="chat"></div><div class="controls"><input id="question" type="text" placeholder="輸入與已收錄健康新聞有關的問題"><button onclick="ask()">提問</button><button onclick="summary()">整理重點</button></div></section></main>
+<script>
+const chat=document.getElementById('chat');
+function add(cls,text,sources=[]){const box=document.createElement('div');box.className='message '+cls;box.textContent=text;if(sources.length){const list=document.createElement('div');list.className='sources';const ul=document.createElement('ul');sources.forEach(s=>{const li=document.createElement('li');const a=document.createElement('a');a.href=s.link;a.target='_blank';a.rel='noopener';a.textContent=s.title;li.append(a,document.createTextNode(`（${s.published_at}；資料入庫 ${s.created_at}）`));ul.append(li)});list.append('檢索來源：',ul);box.append(list)}chat.append(box)}
+async function ask(){const q=document.getElementById('question');if(!q.value.trim())return;add('user',q.value);const text=q.value;q.value='';const r=await fetch('/api/ask',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question:text,retrieve:document.getElementById('retrieve').checked})});const data=await r.json();add('assistant',data.answer||data.error,data.sources||[])}
+async function summary(){const r=await fetch('/api/summary',{method:'POST'});const data=await r.json();add('assistant',data.answer)}
+</script></body></html>
+
